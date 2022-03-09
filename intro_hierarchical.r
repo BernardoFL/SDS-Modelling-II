@@ -85,7 +85,7 @@ dev.off()
 
 ##### Kappas
 
-post_kappa <- apply(kappa, 1, mean)
+post_kappa <- apply(1-kappa, 1, mean)
 
 
 pdf("~/Desktop/kappa.pdf")
