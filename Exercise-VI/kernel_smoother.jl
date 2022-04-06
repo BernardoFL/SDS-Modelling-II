@@ -131,15 +131,15 @@ best_h_12 = optimize_h_cv(train_12, test, f_true)
 
 #21
 train_21 = hcat(red, x, y_21)
-best_h_21 = optimize_h_cv(train, test, x -> cos(5 * x) + x)
+best_h_21 = optimize_h_cv(train_21, test, x -> cos(5 * x) + x)
 
 #22
 train_22 = hcat(red, x, y_22)
-best_h_22 = optimize_h_cv(train, test, x -> cos(5 * x) + x)
+best_h_22 = optimize_h_cv(train_22, test, x -> cos(5 * x) + x)
 ###### Plots
 
 plot(f_true, -5, 5, legend=false, linewidth=2)
-plot!(red, y_11, alpha=0.3, seriestype=:scatter)
+plot!(red, y_11, alpha=0.8, seriestype=:scatter)
 plot!(red, best_h_11[3:103, 1], linestyle=:dashdot, linewidth=2)
 savefig("~/Desktop/f11.pdf")
 
@@ -160,3 +160,65 @@ savefig("~/Desktop/f22.pdf")
 ## Leave-one-out
 
 ### Put the thing in a for loop with the leave one out.
+
+# returns estimated MCE using the leave-one-out methodology
+function loo(f_true, train, spl)
+    y = map(f_true, train)
+    H = train * inv(train' * train) * train' 
+    return sum([(y[i] - Loess.predict(spl, train[i]))^2 / H[i, i] for i in 1:size(H)[1]])
+end
+
+# now repeat everytging
+
+function optimize_h_loess(train, f_true)
+    hs = collect(0.1:0.05:4)
+    losses = zeros(length(hs))
+    y_hat = zeros(size(train)[1], length(hs))
+    for i in 1:length(hs)
+        y_hat[:, i] = kernel_smoothing(train[:, 1], train[:, 2], train[:, 3], hs[i])
+        #obtain functional expression using loess
+        spl = loess(train[:, 2], y_hat[:, i], span=0.5)
+        losses[i] = loo(f_true, train, spl)
+    end
+
+    # Stack the h and the predicted values and sort the columns so that the first one is the one with the lowest h
+    return vcat(hs', losses', y_hat)[:, sortperm(losses)]
+end
+
+## Reuse everything possible :)
+#11
+train_11 = hcat(red, x, y_11)
+best_h_11 = optimize_h_loess(train_11, f_true)
+
+#12
+train_12 = hcat(red, x, y_12)
+best_h_12 = optimize_h_loess(train_12, f_true)
+
+#21
+train_21 = hcat(red, x, y_21)
+best_h_21 = optimize_h_loess(train_21, x -> cos(5 * x) + x)
+
+#22
+train_22 = hcat(red, x, y_22)
+best_h_22 = optimize_h_loess(train_22, x -> cos(5 * x) + x)
+###### Plots
+
+plot(f_true, -5, 5, legend=false, linewidth=2)
+plot!(red, y_11, alpha=0.3, seriestype=:scatter)
+plot!(red, best_h_11[3:103, 1], linestyle=:dashdot, linewidth=2)
+savefig("~/Desktop/f11_loo.pdf")
+
+plot(f_true, -5, 5, legend=false, linewidth=2)
+plot!(red, y_12, alpha=0.8, seriestype=:scatter)
+plot!(red, best_h_12[3:103, 1], linestyle=:dashdot, linewidth=2)
+savefig("~/Desktop/f12_loo.pdf")
+
+plot(x -> cos(5 * x) + x, -5, 5, legend=false, linewidth=2)
+plot!(red, y_21, alpha=0.3, seriestype=:scatter)
+plot!(red, best_h_21[3:103, 1], linestyle=:dashdot, linewidth=2)
+savefig("~/Desktop/f21_loo.pdf")
+
+plot(x -> cos(5 * x) + x, -5, 5, legend=false, linewidth=2)
+plot!(red, y_22, alpha=0.3, seriestype=:scatter)
+plot!(red, best_h_22[3:103, 1], linestyle=:dashdot, linewidth=2)
+savefig("~/Desktop/f22_lo.pdf")

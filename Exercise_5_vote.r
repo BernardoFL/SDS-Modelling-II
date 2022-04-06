@@ -68,7 +68,7 @@ lambdas[, 1] <- rep(1, n)
 #funciotn that returns the unnormalized density for post_nu
 post_nu <- function(nu){
     c_nu <- (gamma(nu/2)*(nu/2)^(nu/2)^(-1) 
-    mat <- sapply(1:n, function(i) (c_nu*lambdas[i]^(nu/2-1)*exp(-nu*lambdas[i]/2))^(ni[i]))
+    mat <- sapply(1:n, function(i) (c_nu*lambdas[i]^(nu/2-1)*exp(-nu*lambdas[i]/2))^(ni[i])) # nolint
     return(prod(mat))
 }
 
