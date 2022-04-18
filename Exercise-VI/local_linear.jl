@@ -45,7 +45,7 @@ end
 ## e) Fit Local Linear Estimators
 
 
-H_list = LinRange(0.1, 1, 20) #list of hs
+H_list = LinRange(0.1,7, 20) #list of hs
 
 LOOCV = zeros(length(H_list)) # initialize average squared error in prediction (LOOCV) matrix
 
